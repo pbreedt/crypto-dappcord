@@ -1,9 +1,36 @@
 const Channels = ({ provider, account, dappcord, channels, currentChannel, setCurrentChannel }) => {
 
+  const channelHandler = async (channel) => {
+    console.log("joining channel", channel)
+    const hasJoined = await dappcord.hasJoined(channel.id, account)
+
+    if (hasJoined) {
+      console.log("already joined channel")
+      setCurrentChannel(channel);
+    } else {
+      const signer = await provider.getSigner()
+
+      const txn = await dappcord.connect(signer).mint(channel.id, { value: channel.cost })
+      await txn.wait()
+      setCurrentChannel(channel);
+    }
+
+  }
+
   return (
     <div className="channels">
       <div className="channels__text">
         <h2>Text Channels</h2>
+
+        <ul>
+          { channels && channels.map( (channel, index) => (
+            <li
+              onClick={() => channelHandler(channel)} key={index}
+              className={currentChannel && currentChannel.id.toString() === channel.id.toString() ? "active" : ""}>
+              {channel.name}
+            </li>
+          ))}
+        </ul>
 
       </div>
 
